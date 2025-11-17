@@ -15,6 +15,13 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { GAME_DATA_KEY } from "../constant";
 import { schema } from "../schema";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type Props = {
   numOfPlayer: number;
@@ -36,35 +43,47 @@ export default function PreGame(props: Props) {
   });
 
   function onSubmit(values: z.infer<typeof schema>) {
-    console.log("values", values);
-
     const gameID = uuidv4();
-    localStorage.setItem(GAME_DATA_KEY, JSON.stringify(values));
+    localStorage.setItem(
+      GAME_DATA_KEY,
+      JSON.stringify({ ...values, id: gameID })
+    );
     router.replace(`/game-board/${gameID}`);
   }
 
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        {form.getValues().player.map((player, index) => (
-          <FormField
-            key={index}
-            control={form.control}
-            name={`player.${index}.name` as const}
-            render={({ field }) => (
-              <FormItem className="mb-4">
-                <FormLabel>Player #{index + 1} name</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder={`Enter player #${index + 1} name`}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        ))}
-        <Button type="submit">Enter game</Button>
+        <Card className="min-w-sm">
+          <CardHeader>
+            <CardTitle>Enter Player Detail</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {form.getValues().player.map((player, index) => (
+              <FormField
+                key={index}
+                control={form.control}
+                name={`player.${index}.name` as const}
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel>Player #{index + 1} name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder={`Enter player #${index + 1} name`}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            ))}
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full">
+              Enter game
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
     </FormProvider>
   );

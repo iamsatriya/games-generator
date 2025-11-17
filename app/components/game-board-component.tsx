@@ -37,10 +37,12 @@ export default function GameBoard(props: Props) {
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     if (typeof window !== "undefined") {
       const gameData = localStorage.getItem(GAME_DATA_KEY);
-      console.log("gamedata", gameData);
-
       if (gameData) {
-        return JSON.parse(gameData);
+        const data = JSON.parse(gameData);
+        if (data.id === props.gameId) {
+          return data;
+        }
+        return data;
       }
     }
     return undefined;
@@ -84,6 +86,8 @@ export default function GameBoard(props: Props) {
         player: updatedPlayers,
       };
 
+      localStorage.setItem(GAME_DATA_KEY, JSON.stringify(updated));
+
       return updated;
     });
 
@@ -94,7 +98,7 @@ export default function GameBoard(props: Props) {
     <Card className="max-w-lg">
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardHeader>
-          <CardTitle>Game</CardTitle>
+          <CardTitle>Game {game?.round.length + 1}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-y-auto max-h-1/2">
           <Table className="w-full">
@@ -113,8 +117,6 @@ export default function GameBoard(props: Props) {
                   ))}
                 </TableRow>
               ))}
-            </TableBody>
-            <TableFooter>
               <TableRow>
                 {fields.map((field, i) => (
                   <TableCell key={field.id}>
@@ -125,9 +127,7 @@ export default function GameBoard(props: Props) {
                   </TableCell>
                 ))}
               </TableRow>
-            </TableFooter>
-          </Table>
-          <Table>
+            </TableBody>
             <TableFooter>
               <TableRow>
                 {game?.player?.map((p, index) => (
@@ -138,7 +138,14 @@ export default function GameBoard(props: Props) {
           </Table>
         </CardContent>
         <CardFooter>
-          <Button type="submit">Add Round</Button>
+          <div className="flex-col w-full space-y-2 mt-8">
+            <Button type="submit" className="w-full">
+              Add Round
+            </Button>
+            <Button type="button" className="w-full" variant="destructive">
+              End Game
+            </Button>
+          </div>
         </CardFooter>
       </form>
     </Card>
