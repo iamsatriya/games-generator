@@ -39,10 +39,12 @@ type Props = {
 };
 
 const localSchema = z.object({
-  score: z.array(z.object({ value: z.string() })),
+  score: z.array(z.object({ value: z.string().min(1) })),
 });
 
 export default function GameBoard(props: Props) {
+  const [loading, setLoading] = useState(false);
+
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
       new Set(
@@ -93,6 +95,11 @@ export default function GameBoard(props: Props) {
     control,
   });
   async function onSubmit(values: z.infer<typeof localSchema>) {
+    const hasEmptyScore = values.score.some((s) => s.value.trim() === "");
+    if (hasEmptyScore) return;
+
+    setLoading(true);
+
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
     const updatedGame = await new Promise<z.infer<typeof schema> | null>(
@@ -133,13 +140,12 @@ export default function GameBoard(props: Props) {
         scoresForThisRound,
         updatedGame.player.map((p) => p.name)
       );
-
-      console.log("Round saved!");
     } catch (error) {
       console.error("Failed to save round:", error);
     }
 
     reset();
+    setLoading(false);
   }
 
   return (
@@ -170,6 +176,7 @@ export default function GameBoard(props: Props) {
                   <TableCell key={field.id}>
                     <Input
                       {...register(`score.${i}.value` as const)}
+                      disabled={loading}
                       type="number"
                     />
                   </TableCell>
@@ -187,10 +194,15 @@ export default function GameBoard(props: Props) {
         </CardContent>
         <CardFooter>
           <div className="flex-col w-full space-y-2 mt-8">
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
               Add Round
             </Button>
-            <Button type="button" className="w-full" variant="destructive">
+            <Button
+              type="button"
+              className="w-full"
+              variant="destructive"
+              disabled={loading}
+            >
               End Game
             </Button>
           </div>
