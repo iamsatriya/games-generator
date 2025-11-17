@@ -18,15 +18,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  StandaloneGame,
+  StandaloneGameRound,
+  StandalonePlayerScore,
+} from "@/lib/generated/prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
-import { GAME_DATA_KEY } from "../constant";
+import { addStandaloneRound } from "../actions/standalone-game";
 import { schema } from "../schema";
 
 type Props = {
-  gameId: string;
+  game: StandaloneGame & {
+    gameRounds: (StandaloneGameRound & {
+      playerScores: StandalonePlayerScore[];
+    })[];
+  };
 };
 
 const localSchema = z.object({
@@ -35,17 +44,37 @@ const localSchema = z.object({
 
 export default function GameBoard(props: Props) {
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
-    if (typeof window !== "undefined") {
-      const gameData = localStorage.getItem(GAME_DATA_KEY);
-      if (gameData) {
-        const data = JSON.parse(gameData);
-        if (data.id === props.gameId) {
-          return data;
-        }
-        return data;
-      }
-    }
-    return undefined;
+    const playerNames = Array.from(
+      new Set(
+        props.game.gameRounds.flatMap((round) =>
+          round.playerScores.map((ps) => ps.playerName)
+        )
+      )
+    );
+
+    const players = playerNames.map((name) => {
+      const totalScore = props.game.gameRounds.reduce((total, round) => {
+        const score =
+          round.playerScores.find((ps) => ps.playerName === name)?.score ?? 0;
+        return total + score;
+      }, 0);
+
+      return { name, totalScore };
+    });
+
+    const rounds = props.game.gameRounds.map((round) =>
+      playerNames.map((name) => {
+        return (
+          round.playerScores.find((ps) => ps.playerName === name)?.score ?? 0
+        );
+      })
+    );
+
+    return {
+      id: props.game.id,
+      player: players,
+      round: rounds,
+    };
   });
 
   const { register, control, handleSubmit, reset } = useForm<
@@ -63,33 +92,52 @@ export default function GameBoard(props: Props) {
     name: "score",
     control,
   });
-
-  function onSubmit(values: z.infer<typeof localSchema>) {
+  async function onSubmit(values: z.infer<typeof localSchema>) {
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
-    setGame((prev) => {
-      if (!prev) return prev;
+    const updatedGame = await new Promise<z.infer<typeof schema> | null>(
+      (resolve) => {
+        setGame((prev) => {
+          if (!prev) {
+            resolve(null);
+            return prev;
+          }
 
-      const newRound = [...prev.round, scoresForThisRound];
+          const newRound = [...prev.round, scoresForThisRound];
 
-      const updatedPlayers = prev.player.map((player, playerIndex) => ({
-        ...player,
-        totalScore: newRound.reduce(
-          (sum, row) => sum + (row[playerIndex] ?? 0),
-          0
-        ),
-      }));
+          const updatedPlayers = prev.player.map((player, playerIndex) => ({
+            ...player,
+            totalScore: newRound.reduce(
+              (sum, row) => sum + (row[playerIndex] ?? 0),
+              0
+            ),
+          }));
 
-      const updated = {
-        ...prev,
-        round: newRound,
-        player: updatedPlayers,
-      };
+          const updated = {
+            ...prev,
+            round: newRound,
+            player: updatedPlayers,
+          };
 
-      localStorage.setItem(GAME_DATA_KEY, JSON.stringify(updated));
+          resolve(updated);
+          return updated;
+        });
+      }
+    );
 
-      return updated;
-    });
+    if (!updatedGame) return;
+
+    try {
+      await addStandaloneRound(
+        updatedGame.id,
+        scoresForThisRound,
+        updatedGame.player.map((p) => p.name)
+      );
+
+      console.log("Round saved!");
+    } catch (error) {
+      console.error("Failed to save round:", error);
+    }
 
     reset();
   }
@@ -98,7 +146,7 @@ export default function GameBoard(props: Props) {
     <Card className="max-w-lg">
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardHeader>
-          <CardTitle>Game {game?.round.length + 1}</CardTitle>
+          <CardTitle>Game {game?.round.length}</CardTitle>
         </CardHeader>
         <CardContent className="overflow-y-auto max-h-1/2">
           <Table className="w-full">
@@ -110,7 +158,7 @@ export default function GameBoard(props: Props) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {game?.round?.map((rounds, index) => (
+              {game?.round?.slice(1)?.map((rounds, index) => (
                 <TableRow key={index}>
                   {rounds?.map((r, index) => (
                     <TableCell key={index}>{r}</TableCell>

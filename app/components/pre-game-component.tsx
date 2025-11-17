@@ -2,6 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   FormControl,
   FormField,
   FormItem,
@@ -11,17 +18,9 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
-import { v4 as uuidv4 } from "uuid";
 import z from "zod";
-import { GAME_DATA_KEY } from "../constant";
+import { createStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 type Props = {
   numOfPlayer: number;
@@ -42,13 +41,10 @@ export default function PreGame(props: Props) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof schema>) {
-    const gameID = uuidv4();
-    localStorage.setItem(
-      GAME_DATA_KEY,
-      JSON.stringify({ ...values, id: gameID })
-    );
-    router.replace(`/game-board/${gameID}`);
+  async function onSubmit(values: z.infer<typeof schema>) {
+    const game = await createStandaloneGame(values.player);
+
+    router.replace(`/game-board/${game.id}`);
   }
 
   return (
