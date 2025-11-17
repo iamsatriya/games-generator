@@ -21,12 +21,15 @@ import { FormProvider, useForm } from "react-hook-form";
 import z from "zod";
 import { createStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
+import { useState } from "react";
 
 type Props = {
   numOfPlayer: number;
 };
 
 export default function PreGame(props: Props) {
+  const [loading, setLoading] = useState(false);
+
   const router = useRouter();
 
   const form = useForm<z.infer<typeof schema>>({
@@ -42,7 +45,9 @@ export default function PreGame(props: Props) {
   });
 
   async function onSubmit(values: z.infer<typeof schema>) {
+    setLoading(true);
     const game = await createStandaloneGame(values.player);
+    setLoading(false);
 
     router.replace(`/game-board/${game.id}`);
   }
@@ -66,6 +71,7 @@ export default function PreGame(props: Props) {
                     <FormControl>
                       <Input
                         {...field}
+                        disabled={loading}
                         placeholder={`Enter player #${index + 1} name`}
                       />
                     </FormControl>
@@ -75,7 +81,7 @@ export default function PreGame(props: Props) {
             ))}
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={loading}>
               Enter game
             </Button>
           </CardFooter>
