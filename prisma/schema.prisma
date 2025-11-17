@@ -52,7 +52,7 @@ model GameRound {
   gameId        String
   game          Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
   
-  roundNumber   Int            // 1, 2, 3, etc.
+  roundNumber   Int[]            // 1, 2, 3, etc.
   
   // Relations
   playerScores  PlayerScore[]
@@ -109,7 +109,7 @@ model StandaloneGameRound {
   gameId        String
   game          StandaloneGame            @relation(fields: [gameId], references: [id], onDelete: Cascade)
   
-  roundNumber   Int                       // 1, 2, 3, etc.
+  roundNumber   Int[]                       // 1, 2, 3, etc.
   
   // Relations
   playerScores  StandalonePlayerScore[]
