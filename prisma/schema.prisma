@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// User model (assuming you have this)
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  
+  // Relations
+  gamesAsMaster Game[]         @relation("GameMaster")
+  playerScores  PlayerScore[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// Main game entity
+model Game {
+  id            String         @id @default(cuid())
+  gameMasterId  Int
+  gameMaster    User           @relation("GameMaster", fields: [gameMasterId], references: [id])
+  
+  status        GameStatus     @default(ACTIVE)
+  
+  // Relations
+  gameRounds    GameRound[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@index([gameMasterId])
+}
+
+// Each round in a game
+model GameRound {
+  id            String         @id @default(cuid())
+  gameId        String
+  game          Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  roundNumber   Int            // 1, 2, 3, etc.
+  
+  // Relations
+  playerScores  PlayerScore[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@unique([gameId, roundNumber]) // Ensure unique round numbers per game
+  @@index([gameId])
+}
+
+// Individual player scores for each round
+model PlayerScore {
+  id            String         @id @default(cuid())
+  gameRoundId   String
+  gameRound     GameRound      @relation(fields: [gameRoundId], references: [id], onDelete: Cascade)
+  
+  playerId      Int
+  player        User           @relation(fields: [playerId], references: [id])
+  
+  score         Int
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@unique([gameRoundId, playerId]) // One score per player per round
+  @@index([gameRoundId])
+  @@index([playerId])
+}
+
+enum GameStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Standalone game without a game master (for casual/self-service games)
+model StandaloneGame {
+  id            String         @id @default(cuid())
+  name          String?        // Optional game name
+  
+  status        GameStatus     @default(ACTIVE)
+  
+  // Relations
+  gameRounds    StandaloneGameRound[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// Each round in a standalone game
+model StandaloneGameRound {
+  id            String                    @id @default(cuid())
+  gameId        String
+  game          StandaloneGame            @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  
+  roundNumber   Int                       // 1, 2, 3, etc.
+  
+  // Relations
+  playerScores  StandalonePlayerScore[]
+  
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  
+  @@unique([gameId, roundNumber])
+  @@index([gameId])
+}
+
+// Player scores for standalone games (no User relation needed)
+model StandalonePlayerScore {
+  id            String                 @id @default(cuid())
+  gameRoundId   String
+  gameRound     StandaloneGameRound    @relation(fields: [gameRoundId], references: [id], onDelete: Cascade)
+  
+  playerName    String                 // Just store player name as string
+  score         Int
+  
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  
+  @@unique([gameRoundId, playerName]) // One score per player name per round
+  @@index([gameRoundId])
+}
