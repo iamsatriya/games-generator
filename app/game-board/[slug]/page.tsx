@@ -18,7 +18,7 @@ export default async function Page({
   console.log("game", game);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <main className="flex h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <GameBoardComponent game={game} />
     </main>
   );

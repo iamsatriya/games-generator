@@ -143,13 +143,13 @@ export default function GameBoard(props: Props) {
   }
 
   return (
-    <Card className="max-w-lg">
+    <Card className="max-w-lg max-h-[80vh]">
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardHeader>
           <CardTitle>Game {game?.round.length}</CardTitle>
         </CardHeader>
-        <CardContent className="overflow-y-auto max-h-1/2">
-          <Table className="w-full">
+        <CardContent className="max-h-[60vh] overflow-auto">
+          <Table className="w-full  overflow-y-auto">
             <TableHeader>
               <TableRow>
                 {game?.player?.map((p, index) => (
