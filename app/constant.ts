@@ -1,0 +1,2 @@
+// export const PLAYER_SCORE_KEY = "PLAYER_SCORE_KEY";
+export const GAME_DATA_KEY = 'GAME_DATA_KEY'
