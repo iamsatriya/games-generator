@@ -13,7 +13,7 @@ export default async function Page({
   const numOfPlayer = Number(slug);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <main className="flex items-center justify-center">
       <div>
         <PreGameComponent numOfPlayer={numOfPlayer} />
       </div>

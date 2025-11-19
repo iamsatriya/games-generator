@@ -4,7 +4,7 @@ import Player from "./components/player";
 export default async function Home() {
   
   return (
-    <main className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <main className="flex items-center justify-center bg-zinc-50 font-sans dark:bg-black">
       <Card>
         <CardHeader>
           <CardTitle>Enter Player</CardTitle>

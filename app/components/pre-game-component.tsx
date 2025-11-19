@@ -57,7 +57,7 @@ export default function PreGame(props: Props) {
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card className="min-w-sm">
           <CardHeader>
-            <CardTitle>Enter Player Detail</CardTitle>
+            <CardTitle>Enter Players</CardTitle>
           </CardHeader>
           <CardContent>
             {form.getValues().player.map((player, index) => (
@@ -67,7 +67,7 @@ export default function PreGame(props: Props) {
                 name={`player.${index}.name` as const}
                 render={({ field }) => (
                   <FormItem className="mb-4">
-                    <FormLabel>Player #{index + 1} name</FormLabel>
+                    <FormLabel>Player #{index + 1}</FormLabel>
                     <FormControl>
                       <Input
                         {...field}

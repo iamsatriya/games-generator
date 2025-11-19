@@ -16,7 +16,7 @@ export default async function Page({
   if (!game) notFound();
 
   return (
-    <main className="flex h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <main className="flex items-center justify-center">
       <GameBoardComponent game={game} />
     </main>
   );
