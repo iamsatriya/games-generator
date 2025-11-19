@@ -27,9 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
-import {
-  endStandaloneGame
-} from "../actions/standalone-game";
+import { endStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
 
 type Props = {
@@ -146,11 +144,44 @@ export default function GameBoard(props: Props) {
     setLoading(false);
   }
 
+  function calculateWinners(): string[] {
+    const winCounts: Record<string, number> = {};
+
+    game.player.forEach((p) => {
+      winCounts[p.name] = 0;
+    });
+
+    game.round.forEach((scores) => {
+      const maxScore = Math.max(...scores);
+
+      scores.forEach((score, index) => {
+        if (score === maxScore) {
+          const playerName = game.player[index].name;
+          winCounts[playerName] += 1;
+        }
+      });
+    });
+
+    const maxWins = Math.max(...Object.values(winCounts));
+
+    return Object.entries(winCounts)
+      .filter(([_, wins]) => wins === maxWins)
+      .map(([name]) => name);
+  }
+
   return (
-    <Card className="max-w-lg max-h-[80vh]">
+    <Card className="max-w-lg max-h-[80vh] w-sm">
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardHeader>
-          <CardTitle>Game {game?.round.length}</CardTitle>
+          <CardTitle>
+            {props.game.status === "ACTIVE" ? (
+              `Game ${game?.round.length}`
+            ) : (
+              <p>
+                Winner: <b>{calculateWinners().join(", ")}</b>
+              </p>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent className="max-h-[60vh] overflow-auto">
           <Table className="w-full  overflow-y-auto">
@@ -169,17 +200,19 @@ export default function GameBoard(props: Props) {
                   ))}
                 </TableRow>
               ))}
-              <TableRow>
-                {fields.map((field, i) => (
-                  <TableCell key={field.id}>
-                    <Input
-                      {...register(`score.${i}.value` as const)}
-                      disabled={loading}
-                      type="number"
-                    />
-                  </TableCell>
-                ))}
-              </TableRow>
+              {props.game.status === "ACTIVE" && (
+                <TableRow>
+                  {fields.map((field, i) => (
+                    <TableCell key={field.id}>
+                      <Input
+                        {...register(`score.${i}.value` as const)}
+                        disabled={loading}
+                        type="number"
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )}
             </TableBody>
             <TableFooter>
               <TableRow>
@@ -190,22 +223,25 @@ export default function GameBoard(props: Props) {
             </TableFooter>
           </Table>
         </CardContent>
-        <CardFooter>
-          <div className="flex-col w-full space-y-2 mt-8">
-            <Button type="submit" className="w-full" disabled={loading}>
-              Add Round
-            </Button>
-            <Button
-              type="button"
-              className="w-full"
-              variant="destructive"
-              disabled={loading}
-              onClick={onEndGame}
-            >
-              End Game
-            </Button>
-          </div>
-        </CardFooter>
+        {props.game.status === "ACTIVE" && (
+          <CardFooter>
+            <div className="flex-col w-full space-y-2 mt-8">
+              <Button type="submit" className="w-full" disabled={loading}>
+                Add Round
+              </Button>
+
+              <Button
+                type="button"
+                className="w-full"
+                variant="destructive"
+                disabled={loading}
+                onClick={onEndGame}
+              >
+                End Game
+              </Button>
+            </div>
+          </CardFooter>
+        )}
       </form>
     </Card>
   );
