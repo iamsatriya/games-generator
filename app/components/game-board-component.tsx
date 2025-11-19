@@ -27,7 +27,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
-import { addStandaloneRound } from "../actions/standalone-game";
+import {
+  endStandaloneGame
+} from "../actions/standalone-game";
 import { schema } from "../schema";
 
 type Props = {
@@ -134,17 +136,13 @@ export default function GameBoard(props: Props) {
 
     if (!updatedGame) return;
 
-    try {
-      await addStandaloneRound(
-        updatedGame.id,
-        scoresForThisRound,
-        updatedGame.player.map((p) => p.name)
-      );
-    } catch (error) {
-      console.error("Failed to save round:", error);
-    }
-
     reset();
+    setLoading(false);
+  }
+
+  async function onEndGame() {
+    setLoading(true);
+    await endStandaloneGame(game);
     setLoading(false);
   }
 
@@ -202,6 +200,7 @@ export default function GameBoard(props: Props) {
               className="w-full"
               variant="destructive"
               disabled={loading}
+              onClick={onEndGame}
             >
               End Game
             </Button>
