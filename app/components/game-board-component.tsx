@@ -29,6 +29,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { endStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
+import { useRouter } from "next/navigation";
 
 type Props = {
   game: StandaloneGame & {
@@ -44,6 +45,8 @@ const localSchema = z.object({
 
 export default function GameBoard(props: Props) {
   const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
@@ -169,6 +172,10 @@ export default function GameBoard(props: Props) {
       .map(([name]) => name);
   }
 
+  function onBackToHome() {
+    router.push("/");
+  }
+
   return (
     <Card className="max-w-lg max-h-[80vh] w-sm">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -223,8 +230,8 @@ export default function GameBoard(props: Props) {
             </TableFooter>
           </Table>
         </CardContent>
-        {props.game.status === "ACTIVE" && (
-          <CardFooter>
+        <CardFooter>
+          {props.game.status === "ACTIVE" ? (
             <div className="flex-col w-full space-y-2 mt-8">
               <Button type="submit" className="w-full" disabled={loading}>
                 Add Round
@@ -240,8 +247,12 @@ export default function GameBoard(props: Props) {
                 End Game
               </Button>
             </div>
-          </CardFooter>
-        )}
+          ) : (
+            <Button className="w-full mt-4" onClick={onBackToHome}>
+              Go to home
+            </Button>
+          )}
+        </CardFooter>
       </form>
     </Card>
   );
