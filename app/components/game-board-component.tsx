@@ -29,7 +29,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { endStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
-import { useRouter } from "next/navigation";
+import ScoreBoardComponent from "./score-board-component";
 
 type Props = {
   game: StandaloneGame & {
@@ -45,8 +45,6 @@ const localSchema = z.object({
 
 export default function GameBoard(props: Props) {
   const [loading, setLoading] = useState(false);
-
-  const router = useRouter();
 
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
@@ -147,113 +145,76 @@ export default function GameBoard(props: Props) {
     setLoading(false);
   }
 
-  function calculateWinners(): string[] {
-    const winCounts: Record<string, number> = {};
-
-    game.player.forEach((p) => {
-      winCounts[p.name] = 0;
-    });
-
-    game.round.forEach((scores) => {
-      const maxScore = Math.max(...scores);
-
-      scores.forEach((score, index) => {
-        if (score === maxScore) {
-          const playerName = game.player[index].name;
-          winCounts[playerName] += 1;
-        }
-      });
-    });
-
-    const maxWins = Math.max(...Object.values(winCounts));
-
-    return Object.entries(winCounts)
-      .filter(([_, wins]) => wins === maxWins)
-      .map(([name]) => name);
-  }
-
-  function onBackToHome() {
-    router.push("/");
-  }
-
   return (
-    <Card className="max-w-lg max-h-[80vh] w-sm">
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardHeader>
-          <CardTitle>
-            {props.game.status === "ACTIVE" ? (
-              `Game ${game?.round.length}`
-            ) : (
-              <p>
-                Winner: <b>{calculateWinners().join(", ")}</b>
-              </p>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="max-h-[60vh] overflow-auto">
-          <Table className="w-full  overflow-y-auto">
-            <TableHeader>
-              <TableRow>
-                {game?.player?.map((p, index) => (
-                  <TableHead key={index}>{p.name}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {game?.round?.slice(1)?.map((rounds, index) => (
-                <TableRow key={index}>
-                  {rounds?.map((r, index) => (
-                    <TableCell key={index}>{r}</TableCell>
+    <>
+      {props.game.status == "ACTIVE" ? (
+        <Card className="max-w-lg w-sm">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <CardHeader>
+              <CardTitle>{`Game ${game?.round.length}`}</CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    {game?.player?.map((p, index) => (
+                      <TableHead key={index}>{p.name}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {game?.round?.slice(1)?.map((rounds, index) => (
+                    <TableRow key={index}>
+                      {rounds?.map((r, index) => (
+                        <TableCell key={index}>{r}</TableCell>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-              {props.game.status === "ACTIVE" && (
-                <TableRow>
-                  {fields.map((field, i) => (
-                    <TableCell key={field.id}>
-                      <Input
-                        {...register(`score.${i}.value` as const)}
-                        disabled={loading}
-                        type="number"
-                      />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              )}
-            </TableBody>
-            <TableFooter>
-              <TableRow>
-                {game?.player?.map((p, index) => (
-                  <TableCell key={index}>{p.totalScore}</TableCell>
-                ))}
-              </TableRow>
-            </TableFooter>
-          </Table>
-        </CardContent>
-        <CardFooter>
-          {props.game.status === "ACTIVE" ? (
-            <div className="flex-col w-full space-y-2 mt-8">
-              <Button type="submit" className="w-full" disabled={loading}>
-                Add Round
-              </Button>
+                  {props.game.status === "ACTIVE" && (
+                    <TableRow>
+                      {fields.map((field, i) => (
+                        <TableCell key={field.id}>
+                          <Input
+                            {...register(`score.${i}.value` as const)}
+                            disabled={loading}
+                            type="number"
+                          />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  )}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    {game?.player?.map((p, index) => (
+                      <TableCell key={index}>{p.totalScore}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </CardContent>
+            <CardFooter>
+              <div className="flex-col w-full space-y-2 mt-8">
+                <Button type="submit" className="w-full" disabled={loading}>
+                  Add Round
+                </Button>
 
-              <Button
-                type="button"
-                className="w-full"
-                variant="destructive"
-                disabled={loading}
-                onClick={onEndGame}
-              >
-                End Game
-              </Button>
-            </div>
-          ) : (
-            <Button className="w-full mt-4" onClick={onBackToHome}>
-              Go to home
-            </Button>
-          )}
-        </CardFooter>
-      </form>
-    </Card>
+                <Button
+                  type="button"
+                  className="w-full"
+                  variant="destructive"
+                  disabled={loading}
+                  onClick={onEndGame}
+                >
+                  End Game
+                </Button>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+      ) : (
+        <ScoreBoardComponent game={game} />
+      )}
+    </>
   );
 }
