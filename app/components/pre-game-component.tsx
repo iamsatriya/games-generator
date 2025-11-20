@@ -22,6 +22,8 @@ import z from "zod";
 import { createStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
+import { PLAYER_ID_KEY } from "../constant";
 
 type Props = {
   numOfPlayer: number;
@@ -46,6 +48,11 @@ export default function PreGame(props: Props) {
 
   async function onSubmit(values: z.infer<typeof schema>) {
     setLoading(true);
+    const playerId = localStorage.getItem(PLAYER_ID_KEY);
+    if (!playerId) {
+      const id = uuidv4();
+      localStorage.setItem(PLAYER_ID_KEY, id);
+    }
     const game = await createStandaloneGame(values.player);
     setLoading(false);
 
