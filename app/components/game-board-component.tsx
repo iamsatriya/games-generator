@@ -30,6 +30,7 @@ import z from "zod";
 import { endStandaloneGame } from "../actions/standalone-game";
 import { schema } from "../schema";
 import ScoreBoardComponent from "./score-board-component";
+import { PLAYER_ID_KEY } from "../constant";
 
 type Props = {
   game: StandaloneGame & {
@@ -141,7 +142,8 @@ export default function GameBoard(props: Props) {
 
   async function onEndGame() {
     setLoading(true);
-    await endStandaloneGame(game);
+    const playerId = localStorage.getItem(PLAYER_ID_KEY);
+    await endStandaloneGame(game, playerId);
     setLoading(false);
   }
 

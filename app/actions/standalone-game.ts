@@ -77,12 +77,16 @@ export async function addStandaloneRound(
   return newRound;
 }
 
-export async function endStandaloneGame(game: z.infer<typeof schema>) {
+export async function endStandaloneGame(
+  game: z.infer<typeof schema>,
+  playerId?: string | null
+) {
   // update entire gameRounds based on game.round[][]
   await prisma.standaloneGame.update({
     where: { id: game.id },
     data: {
       status: "COMPLETED",
+      name: playerId,
       gameRounds: {
         deleteMany: {},
         create: game.round.map((scores, roundIndex) => ({
