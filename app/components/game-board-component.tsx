@@ -163,13 +163,34 @@ export default function GameBoard(props: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {game?.round?.slice(1)?.map((rounds, index) => (
-                    <TableRow key={index}>
-                      {rounds?.map((r, index) => (
-                        <TableCell key={index}>{r}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                  {game?.round?.slice(1)?.map((rounds, gameIndex) => {
+                    // Get cumulative scores for the round
+                    const cumulativeScores = rounds.map((_, index) =>
+                      game.round
+                        .slice(1, gameIndex + 2)
+                        .reduce((sum, round) => sum + round[index], 0)
+                    );
+
+                    const minScore = Math.min(...cumulativeScores);
+
+                    return (
+                      <TableRow key={gameIndex}>
+                        {cumulativeScores.map((value, index) => {
+                          const isLowest = value === minScore;
+                          const cellClass = isLowest
+                            ? "text-red-600 font-bold"
+                            : "";
+
+                          return (
+                            <TableCell key={index} className={cellClass}>
+                              {value}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+
                   {props.game.status === "ACTIVE" && (
                     <TableRow>
                       {fields.map((field, i) => (
@@ -184,13 +205,13 @@ export default function GameBoard(props: Props) {
                     </TableRow>
                   )}
                 </TableBody>
-                <TableFooter>
+                {/* <TableFooter>
                   <TableRow>
                     {game?.player?.map((p, index) => (
                       <TableCell key={index}>{p.totalScore}</TableCell>
                     ))}
                   </TableRow>
-                </TableFooter>
+                </TableFooter> */}
               </Table>
             </CardContent>
             <CardFooter>
