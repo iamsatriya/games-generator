@@ -129,6 +129,8 @@ model StandalonePlayerScore {
   
   playerName    String                 // Just store player name as string
   score         Int
+  // I want to added stars included in score
+  stars         Int                    @default(0)
   
   createdAt     DateTime               @default(now())
   updatedAt     DateTime               @updatedAt
