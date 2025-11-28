@@ -49,7 +49,7 @@ export default function GameBoard(props: Props) {
 
   const [currentRound, setCurrentRound] = useState(0);
 
-  const [crownIndex, setCrownIndex] = useState<number | null>(1);
+  const [crownIndex, setCrownIndex] = useState<number | null>(null);
 
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
@@ -157,7 +157,9 @@ export default function GameBoard(props: Props) {
       star: game.star.slice(0, -1),
     };
 
-    await endStandaloneGame(finalGame, playerId);
+    console.log("game", finalGame);
+
+    // await endStandaloneGame(finalGame, playerId);
     setLoading(false);
   }
 
@@ -180,9 +182,11 @@ export default function GameBoard(props: Props) {
                 </TableHeader>
                 <TableBody>
                   {game?.round?.slice(0, -1).map((rounds, gameIndex) => {
-                    const verticalSums = game.round.reduce((acc, row) => {
-                      return acc.map((sum, index) => sum + row[index]);
-                    });
+                    const verticalSums = game.round
+                      .slice(0, gameIndex +1)
+                      .reduce((acc, row) => {
+                        return acc.map((sum, index) => sum + row[index]);
+                      });
 
                     const minScore = Math.min(...verticalSums);
 
