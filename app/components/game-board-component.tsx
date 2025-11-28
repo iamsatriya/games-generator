@@ -13,7 +13,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -24,13 +23,14 @@ import {
   StandalonePlayerScore,
 } from "@/lib/generated/prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CrownIcon } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { endStandaloneGame } from "../actions/standalone-game";
+import { PLAYER_ID_KEY } from "../constant";
 import { schema } from "../schema";
 import ScoreBoardComponent from "./score-board-component";
-import { PLAYER_ID_KEY } from "../constant";
 
 type Props = {
   game: StandaloneGame & {
@@ -49,7 +49,7 @@ export default function GameBoard(props: Props) {
 
   const [currentRound, setCurrentRound] = useState(0);
 
-  const [crownIndex, setCrownIndex] = useState<number | null>(null);
+  const [crownIndex, setCrownIndex] = useState<number | null>(1);
 
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
@@ -109,6 +109,7 @@ export default function GameBoard(props: Props) {
     name: "score",
     control,
   });
+
   async function onSubmit(values: z.infer<typeof localSchema>) {
     const hasEmptyScore = values.score.some((s) => s.value.trim() === "");
     if (hasEmptyScore) return;
@@ -117,6 +118,14 @@ export default function GameBoard(props: Props) {
 
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
+    const crownsForThisRound = Array.from({ length: game?.player.length }).map(
+      () => 0
+    );
+
+    if (crownIndex != null) {
+      crownsForThisRound[crownIndex] = 1;
+    }
+
     setGame((prev) => {
       const roundScore = prev.round;
       roundScore[currentRound] = scoresForThisRound;
@@ -124,11 +133,16 @@ export default function GameBoard(props: Props) {
         { length: prev.player.length },
         () => 0
       );
+      const roundCrown = prev.star;
+      roundCrown[currentRound] = crownsForThisRound;
+      roundCrown[currentRound + 1] = Array.from(
+        { length: prev.player.length },
+        () => 0
+      );
 
-      // const roundStar = prev.star;
-      // roundStar[currentRound] = 
-      return { ...prev, round: roundScore };
+      return { ...prev, round: roundScore, star: roundCrown };
     });
+    setCrownIndex(null);
     setCurrentRound((prev) => prev + 1);
     reset();
     setLoading(false);
@@ -140,16 +154,17 @@ export default function GameBoard(props: Props) {
     const finalGame = {
       ...game,
       round: game.round.slice(0, -1),
+      star: game.star.slice(0, -1),
     };
 
-    // await endStandaloneGame(finalGame, playerId);
+    await endStandaloneGame(finalGame, playerId);
     setLoading(false);
   }
 
   return (
     <>
       {props.game.status == "ACTIVE" ? (
-        <Card className="max-w-lg w-sm">
+        <Card className="max-w-md">
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardHeader>
               <CardTitle>{`Game ${game?.round.length}`}</CardTitle>
@@ -176,15 +191,24 @@ export default function GameBoard(props: Props) {
                         {rounds.map((_, index) => {
                           return (
                             <TableCell key={index}>
-                              <span
-                                className={`${
-                                  minScore === verticalSums[index]
-                                    ? "text-red-600 font-bold"
-                                    : ""
-                                }`}
-                              >
-                                {verticalSums[index]}
-                              </span>
+                              <div className="flex items-center">
+                                <p
+                                  className={`flex-1 ${
+                                    minScore === verticalSums[index]
+                                      ? "text-red-600  font-bold"
+                                      : ""
+                                  }`}
+                                >
+                                  {verticalSums[index]}
+                                </p>
+                                {game?.star?.slice(0, -1)[gameIndex][index] ==
+                                  1 && (
+                                  <CrownIcon
+                                    size={16}
+                                    className="fill-orange-300 stroke-orange-300 stroke-2"
+                                  />
+                                )}
+                              </div>
                             </TableCell>
                           );
                         })}
@@ -196,23 +220,30 @@ export default function GameBoard(props: Props) {
                     <TableRow>
                       {fields.map((field, i) => (
                         <TableCell key={field.id}>
-                          <Input
-                            {...register(`score.${i}.value` as const)}
-                            disabled={loading}
-                            type="number"
-                          />
+                          <div className="flex items-center gap-x-2">
+                            <Input
+                              {...register(`score.${i}.value` as const)}
+                              disabled={loading}
+                              type="number"
+                              className="flex-1"
+                            />
+                            <CrownIcon
+                              size={16}
+                              onClick={() => {
+                                setCrownIndex(i);
+                              }}
+                              className={`${
+                                crownIndex == i
+                                  ? "fill-orange-300 stroke-orange-300 stroke-2"
+                                  : ""
+                              }`}
+                            />
+                          </div>
                         </TableCell>
                       ))}
                     </TableRow>
                   )}
                 </TableBody>
-                {/* <TableFooter>
-                  <TableRow>
-                    {game?.player?.map((p, index) => (
-                      <TableCell key={index}>{p.totalScore}</TableCell>
-                    ))}
-                  </TableRow>
-                </TableFooter> */}
               </Table>
             </CardContent>
             <CardFooter>
