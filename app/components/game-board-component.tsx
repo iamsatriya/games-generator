@@ -47,6 +47,10 @@ const localSchema = z.object({
 export default function GameBoard(props: Props) {
   const [loading, setLoading] = useState(false);
 
+  const [currentRound, setCurrentRound] = useState(0);
+
+  const [crownIndex, setCrownIndex] = useState<number | null>(null);
+
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
     const playerNames = Array.from(
       new Set(
@@ -74,10 +78,19 @@ export default function GameBoard(props: Props) {
       })
     );
 
+    const stars = props.game.gameRounds.map((round) =>
+      playerNames.map((name) => {
+        return (
+          round.playerScores.find((ps) => ps.playerName === name)?.stars ?? 0
+        );
+      })
+    );
+
     return {
       id: props.game.id,
       player: players,
       round: rounds,
+      star: stars,
     };
   });
 
@@ -104,38 +117,19 @@ export default function GameBoard(props: Props) {
 
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
-    const updatedGame = await new Promise<z.infer<typeof schema> | null>(
-      (resolve) => {
-        setGame((prev) => {
-          if (!prev) {
-            resolve(null);
-            return prev;
-          }
+    setGame((prev) => {
+      const roundScore = prev.round;
+      roundScore[currentRound] = scoresForThisRound;
+      roundScore[currentRound + 1] = Array.from(
+        { length: prev.player.length },
+        () => 0
+      );
 
-          const newRound = [...prev.round, scoresForThisRound];
-
-          const updatedPlayers = prev.player.map((player, playerIndex) => ({
-            ...player,
-            totalScore: newRound.reduce(
-              (sum, row) => sum + (row[playerIndex] ?? 0),
-              0
-            ),
-          }));
-
-          const updated = {
-            ...prev,
-            round: newRound,
-            player: updatedPlayers,
-          };
-
-          resolve(updated);
-          return updated;
-        });
-      }
-    );
-
-    if (!updatedGame) return;
-
+      // const roundStar = prev.star;
+      // roundStar[currentRound] = 
+      return { ...prev, round: roundScore };
+    });
+    setCurrentRound((prev) => prev + 1);
     reset();
     setLoading(false);
   }
@@ -143,7 +137,12 @@ export default function GameBoard(props: Props) {
   async function onEndGame() {
     setLoading(true);
     const playerId = localStorage.getItem(PLAYER_ID_KEY);
-    await endStandaloneGame(game, playerId);
+    const finalGame = {
+      ...game,
+      round: game.round.slice(0, -1),
+    };
+
+    // await endStandaloneGame(finalGame, playerId);
     setLoading(false);
   }
 
@@ -165,27 +164,27 @@ export default function GameBoard(props: Props) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {game?.round?.slice(1)?.map((rounds, gameIndex) => {
-                    // Get cumulative scores for the round
-                    const cumulativeScores = rounds.map((_, index) =>
-                      game.round
-                        .slice(1, gameIndex + 2)
-                        .reduce((sum, round) => sum + round[index], 0)
-                    );
+                  {game?.round?.slice(0, -1).map((rounds, gameIndex) => {
+                    const verticalSums = game.round.reduce((acc, row) => {
+                      return acc.map((sum, index) => sum + row[index]);
+                    });
 
-                    const minScore = Math.min(...cumulativeScores);
+                    const minScore = Math.min(...verticalSums);
 
                     return (
                       <TableRow key={gameIndex}>
-                        {cumulativeScores.map((value, index) => {
-                          const isLowest = value === minScore;
-                          const cellClass = isLowest
-                            ? "text-red-600 font-bold"
-                            : "";
-
+                        {rounds.map((_, index) => {
                           return (
-                            <TableCell key={index} className={cellClass}>
-                              {value}
+                            <TableCell key={index}>
+                              <span
+                                className={`${
+                                  minScore === verticalSums[index]
+                                    ? "text-red-600 font-bold"
+                                    : ""
+                                }`}
+                              >
+                                {verticalSums[index]}
+                              </span>
                             </TableCell>
                           );
                         })}

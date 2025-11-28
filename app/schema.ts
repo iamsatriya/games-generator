@@ -9,4 +9,5 @@ export const schema = z.object({
     })
   ),
   round: z.array(z.array(z.number())),
+  star: z.array(z.array(z.number())),
 });

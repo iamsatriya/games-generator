@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableBody,
@@ -9,6 +11,7 @@ import { useRouter } from "next/navigation";
 import z from "zod";
 import { schema } from "../schema";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 type Props = {
   game: z.infer<typeof schema>;
@@ -94,6 +97,20 @@ export default function ScoreBoardComponent(props: Props) {
     return "";
   }
 
+  const response = [
+    <>
+      Daftar orang <b>cupu</b>
+    </>,
+    <>
+      Ku kira suhu, ternyata <b>cupu</b>
+    </>,
+    <>Kaga usah main lagi dah lu</>,
+    <>Kalah mulu, kaga bosen apa?</>,
+  ];
+  const [randomIndex] = useState(() =>
+    Math.floor(Math.random() * response.length)
+  );
+
   return (
     <section>
       {/* <div className="text-center">
@@ -106,9 +123,7 @@ export default function ScoreBoardComponent(props: Props) {
       </div> */}
 
       <div className="text-center">
-        <h1 className="text-2xl font-medium">
-          Daftar orang <b>cupu</b>
-        </h1>
+        <h1 className="text-2xl font-medium">{response[randomIndex]}</h1>
         <p className="text-5xl font-bold">
           {calculateLosers()
             .map((item) => item.name)
