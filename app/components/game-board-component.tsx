@@ -23,7 +23,7 @@ import {
   StandalonePlayerScore,
 } from "@/lib/generated/prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CrownIcon } from "lucide-react";
+import { AngryIcon, CrownIcon, FlameIcon } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
@@ -48,6 +48,8 @@ export default function GameBoard(props: Props) {
   const [loading, setLoading] = useState(false);
 
   const [currentRound, setCurrentRound] = useState(0);
+
+  const [loseStreak, setLoseStreak] = useState<string[]>([]);
 
   const [crownIndex, setCrownIndex] = useState<number | null>(null);
 
@@ -118,6 +120,20 @@ export default function GameBoard(props: Props) {
 
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
+    setLoseStreak((prev) => {
+      const minScore = Math.min(...scoresForThisRound);
+
+      const minIndexes = scoresForThisRound
+        .map((v, i) => (v === minScore ? i : -1))
+        .filter((i) => i !== -1);
+      if (minIndexes.length === 1) {
+        const newStreak = [...prev];
+        newStreak.push(game.player[minIndexes[0]].name);
+        return newStreak;
+      }
+      return prev;
+    });
+
     const crownsForThisRound = Array.from({ length: game?.player.length }).map(
       () => 0
     );
@@ -176,14 +192,19 @@ export default function GameBoard(props: Props) {
                 <TableHeader>
                   <TableRow>
                     {game?.player?.map((p, index) => (
-                      <TableHead key={index}>{p.name}</TableHead>
+                      <TableHead key={index}>
+                        {p.name}
+                        {loseStreak.slice(-3).every((v) => v === p.name) && (
+                          <AngryIcon color="red" stroke="red" fill="red" />
+                        )}
+                      </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {game?.round?.slice(0, -1).map((rounds, gameIndex) => {
                     const verticalSums = game.round
-                      .slice(0, gameIndex +1)
+                      .slice(0, gameIndex + 1)
                       .reduce((acc, row) => {
                         return acc.map((sum, index) => sum + row[index]);
                       });
