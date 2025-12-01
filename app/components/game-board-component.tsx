@@ -126,6 +126,7 @@ export default function GameBoard(props: Props) {
       const minIndexes = scoresForThisRound
         .map((v, i) => (v === minScore ? i : -1))
         .filter((i) => i !== -1);
+
       if (minIndexes.length === 1) {
         const newStreak = [...prev];
         newStreak.push(game.player[minIndexes[0]].name);
@@ -173,11 +174,25 @@ export default function GameBoard(props: Props) {
       star: game.star.slice(0, -1),
     };
 
-    console.log("game", finalGame);
-
-    // await endStandaloneGame(finalGame, playerId);
+    await endStandaloneGame(finalGame, playerId);
     setLoading(false);
   }
+
+  function countFromEnd<T>(arr: T[]): number {
+    if (arr.length === 0) return 0;
+
+    const last = arr[arr.length - 1];
+    let count = 0;
+
+    for (let i = arr.length - 1; i >= 0; i--) {
+      if (arr[i] === last) count++;
+      else break;
+    }
+
+    return count;
+  }
+
+  console.log("lose", loseStreak);
 
   return (
     <>
@@ -193,10 +208,17 @@ export default function GameBoard(props: Props) {
                   <TableRow>
                     {game?.player?.map((p, index) => (
                       <TableHead key={index}>
-                        {p.name}
-                        {loseStreak.slice(-3).every((v) => v === p.name) && (
-                          <AngryIcon color="red" stroke="red" fill="red" />
-                        )}
+                        <div className="relative overflow-visible">
+                          {loseStreak.length >= 3 &&
+                            loseStreak.slice(-3).every((v) => v === p.name) && (
+                              // <FlameIcon stroke="red" fill="red" />
+                              <img
+                                src={"/burn.gif"}
+                                className="absolute right-0 bottom-0 left-0"
+                              />
+                            )}
+                          <span>{p.name}</span>
+                        </div>
                       </TableHead>
                     ))}
                   </TableRow>
@@ -270,6 +292,12 @@ export default function GameBoard(props: Props) {
                   )}
                 </TableBody>
               </Table>
+              {countFromEnd(loseStreak) >= 3 && (
+                <p className="text-center">
+                  {loseStreak.slice(-1) + " udah lose streak "}
+                  <strong>{`${countFromEnd(loseStreak)} kali!`}</strong>
+                </p>
+              )}
             </CardContent>
             <CardFooter>
               <div className="flex-col w-full space-y-2 mt-8">
