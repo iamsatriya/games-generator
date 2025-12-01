@@ -18,6 +18,7 @@ export async function createStandaloneGame(
               create: players.map((p) => ({
                 playerName: p.name,
                 score: p.totalScore,
+                stars: 0,
               })),
             },
           },
@@ -58,7 +59,7 @@ export async function addStandaloneRound(
     .count({
       where: { gameId },
     })
-    .then((count) => count + 1);
+    .then((count: number) => count + 1);
 
   const newRound = await prisma.standaloneGameRound.create({
     data: {

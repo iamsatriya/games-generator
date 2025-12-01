@@ -43,6 +43,7 @@ export default function PreGame(props: Props) {
         totalScore: 0,
       })),
       round: [],
+      star: [],
     },
   });
 
@@ -53,6 +54,7 @@ export default function PreGame(props: Props) {
       const id = uuidv4();
       localStorage.setItem(PLAYER_ID_KEY, id);
     }
+
     const game = await createStandaloneGame(values.player);
     setLoading(false);
 
