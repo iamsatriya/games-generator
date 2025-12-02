@@ -23,7 +23,7 @@ import {
   StandalonePlayerScore,
 } from "@/lib/generated/prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AngryIcon, CrownIcon, FlameIcon } from "lucide-react";
+import { CrownIcon } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
@@ -277,7 +277,11 @@ export default function GameBoard(props: Props) {
                             <CrownIcon
                               size={16}
                               onClick={() => {
-                                setCrownIndex(i);
+                                if (crownIndex == i) {
+                                  setCrownIndex(null);
+                                } else {
+                                  setCrownIndex(i);
+                                }
                               }}
                               className={`${
                                 crownIndex == i
