@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Image from "next/image";
 import Logo from "@/public/logo.png";
+import packageJson from "../package.json";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -56,6 +57,7 @@ export default function RootLayout({
         <div>
           <Image alt="logo" src={Logo} height={200} className="mx-auto mb-4" />
           {children}
+          <p className="text-center mt-2">version: {packageJson.version}</p>
         </div>
       </body>
     </html>

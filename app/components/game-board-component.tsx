@@ -49,7 +49,7 @@ export default function GameBoard(props: Props) {
 
   const [currentRound, setCurrentRound] = useState(0);
 
-  const [loseStreak, setLoseStreak] = useState<string[]>([]);
+  // const [loseStreak, setLoseStreak] = useState<string[]>([]);
 
   const [crownIndex, setCrownIndex] = useState<number | null>(null);
 
@@ -120,20 +120,20 @@ export default function GameBoard(props: Props) {
 
     const scoresForThisRound = values.score.map((v) => Number(v.value));
 
-    setLoseStreak((prev) => {
-      const minScore = Math.min(...scoresForThisRound);
+    // setLoseStreak((prev) => {
+    //   const minScore = Math.min(...scoresForThisRound);
 
-      const minIndexes = scoresForThisRound
-        .map((v, i) => (v === minScore ? i : -1))
-        .filter((i) => i !== -1);
+    //   const minIndexes = scoresForThisRound
+    //     .map((v, i) => (v === minScore ? i : -1))
+    //     .filter((i) => i !== -1);
 
-      if (minIndexes.length === 1) {
-        const newStreak = [...prev];
-        newStreak.push(game.player[minIndexes[0]].name);
-        return newStreak;
-      }
-      return prev;
-    });
+    //   if (minIndexes.length === 1) {
+    //     const newStreak = [...prev];
+    //     newStreak.push(game.player[minIndexes[0]].name);
+    //     return newStreak;
+    //   }
+    //   return prev;
+    // });
 
     const crownsForThisRound = Array.from({ length: game?.player.length }).map(
       () => 0
@@ -192,139 +192,131 @@ export default function GameBoard(props: Props) {
     return count;
   }
 
-  console.log("lose", loseStreak);
-
   return (
-    <>
-      {props.game.status == "ACTIVE" ? (
-        <Card className="max-w-md">
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CardHeader>
-              <CardTitle>{`Game ${game?.round.length}`}</CardTitle>
-            </CardHeader>
-            <CardContent className="overflow-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    {game?.player?.map((p, index) => (
-                      <TableHead key={index}>
-                        <div className="relative overflow-visible">
-                          {loseStreak.length >= 3 &&
+    <Card className="max-w-md">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <CardHeader>
+          <CardTitle>{`Game ${game?.round.length}`}</CardTitle>
+        </CardHeader>
+        <CardContent className="overflow-auto">
+          <Table className="w-full">
+            <TableHeader>
+              <TableRow>
+                {game?.player?.map((p, index) => (
+                  <TableHead key={index}>
+                    <div className="relative overflow-visible">
+                      {/* {loseStreak.length >= 3 &&
                             loseStreak.slice(-3).every((v) => v === p.name) && (
                               // <FlameIcon stroke="red" fill="red" />
                               <img
                                 src={"/burn.gif"}
                                 className="absolute right-0 bottom-0 left-0"
                               />
-                            )}
-                          <span>{p.name}</span>
-                        </div>
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {game?.round?.slice(0, -1).map((rounds, gameIndex) => {
-                    const verticalSums = game.round
-                      .slice(0, gameIndex + 1)
-                      .reduce((acc, row) => {
-                        return acc.map((sum, index) => sum + row[index]);
-                      });
+                            )} */}
+                      <span>{p.name}</span>
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {game?.round?.slice(0, -1).map((rounds, gameIndex) => {
+                const verticalSums = game.round
+                  .slice(0, gameIndex + 1)
+                  .reduce((acc, row) => {
+                    return acc.map((sum, index) => sum + row[index]);
+                  });
 
-                    const minScore = Math.min(...verticalSums);
+                const minScore = Math.min(...verticalSums);
 
-                    return (
-                      <TableRow key={gameIndex}>
-                        {rounds.map((_, index) => {
-                          return (
-                            <TableCell key={index}>
-                              <div className="flex items-center">
-                                <p
-                                  className={`flex-1 ${
-                                    minScore === verticalSums[index]
-                                      ? "text-red-600  font-bold"
-                                      : ""
-                                  }`}
-                                >
-                                  {verticalSums[index]}
-                                </p>
-                                {game?.star?.slice(0, -1)[gameIndex][index] ==
-                                  1 && (
-                                  <CrownIcon
-                                    size={16}
-                                    className="fill-orange-300 stroke-orange-300 stroke-2"
-                                  />
-                                )}
-                              </div>
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                    );
-                  })}
-
-                  {props.game.status === "ACTIVE" && (
-                    <TableRow>
-                      {fields.map((field, i) => (
-                        <TableCell key={field.id}>
-                          <div className="flex items-center gap-x-2">
-                            <Input
-                              {...register(`score.${i}.value` as const)}
-                              disabled={loading}
-                              type="number"
-                              className="flex-1"
-                            />
-                            <CrownIcon
-                              size={16}
-                              onClick={() => {
-                                if (crownIndex == i) {
-                                  setCrownIndex(null);
-                                } else {
-                                  setCrownIndex(i);
-                                }
-                              }}
-                              className={`${
-                                crownIndex == i
-                                  ? "fill-orange-300 stroke-orange-300 stroke-2"
+                return (
+                  <TableRow key={gameIndex}>
+                    {rounds.map((_, index) => {
+                      return (
+                        <TableCell key={index}>
+                          <div className="flex items-center">
+                            <p
+                              className={`flex-1 ${
+                                minScore === verticalSums[index]
+                                  ? "text-red-600  font-bold"
                                   : ""
                               }`}
-                            />
+                            >
+                              {verticalSums[index]}
+                            </p>
+                            {game?.star?.slice(0, -1)[gameIndex][index] ==
+                              1 && (
+                              <CrownIcon
+                                size={16}
+                                className="fill-orange-300 stroke-orange-300 stroke-2"
+                              />
+                            )}
                           </div>
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-              {countFromEnd(loseStreak) >= 3 && (
+                      );
+                    })}
+                  </TableRow>
+                );
+              })}
+
+              {props.game.status === "ACTIVE" && (
+                <TableRow>
+                  {fields.map((field, i) => (
+                    <TableCell key={field.id}>
+                      <div className="flex items-center gap-x-2">
+                        <Input
+                          {...register(`score.${i}.value` as const)}
+                          disabled={loading}
+                          type="number"
+                          className="flex-1"
+                        />
+                        <CrownIcon
+                          size={16}
+                          onClick={() => {
+                            if (crownIndex == i) {
+                              setCrownIndex(null);
+                            } else {
+                              setCrownIndex(i);
+                            }
+                          }}
+                          className={`${
+                            crownIndex == i
+                              ? "fill-orange-300 stroke-orange-300 stroke-2"
+                              : ""
+                          }`}
+                        />
+                      </div>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {/* {countFromEnd(loseStreak) >= 3 && (
                 <p className="text-center">
                   {loseStreak.slice(-1) + " udah lose streak "}
                   <strong>{`${countFromEnd(loseStreak)} kali!`}</strong>
                 </p>
-              )}
-            </CardContent>
-            <CardFooter>
-              <div className="flex-col w-full space-y-2 mt-8">
-                <Button type="submit" className="w-full" disabled={loading}>
-                  Add Round
-                </Button>
+              )} */}
+        </CardContent>
+        <CardFooter>
+          <div className="flex-col w-full space-y-2 mt-8">
+            <Button type="submit" className="w-full" disabled={loading}>
+              Add Round
+            </Button>
 
-                <Button
-                  type="button"
-                  className="w-full"
-                  variant="destructive"
-                  disabled={loading}
-                  onClick={onEndGame}
-                >
-                  End Game
-                </Button>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
-      ) : (
-        <ScoreBoardComponent game={game} />
-      )}
-    </>
+            <Button
+              type="button"
+              className="w-full"
+              variant="destructive"
+              disabled={loading}
+              onClick={onEndGame}
+            >
+              End Game
+            </Button>
+          </div>
+        </CardFooter>
+      </form>
+    </Card>
   );
 }

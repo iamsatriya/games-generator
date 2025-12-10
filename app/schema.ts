@@ -5,7 +5,7 @@ export const schema = z.object({
   player: z.array(
     z.object({
       name: z.string().min(1),
-      totalScore: z.number().min(0),
+      totalScore: z.number(),
     })
   ),
   round: z.array(z.array(z.number())),

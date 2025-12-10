@@ -98,14 +98,14 @@ export default function ScoreBoardComponent(props: Props) {
   }
 
   const response = [
-    <>
+    <p key={1}>
       Daftar orang <b>cupu</b>
-    </>,
-    <>
+    </p>,
+    <p key={2}>
       Ku kira suhu, ternyata <b>cupu</b>
-    </>,
-    <>Kaga usah main lagi dah lu</>,
-    <>Kalah mulu, kaga bosen apa?</>,
+    </p>,
+    <p key={3}>Kaga usah main lagi dah lu</p>,
+    <p key={4}>Kalah mulu, kaga bosen apa?</p>,
   ];
   const [randomIndex] = useState(() =>
     Math.floor(Math.random() * response.length)

@@ -1,6 +1,6 @@
 import { getStandaloneGame } from "@/app/actions/standalone-game";
 import GameBoardComponent from "@/app/components/game-board-component";
-import { notFound } from "next/navigation";
+import { notFound, redirect, RedirectType } from "next/navigation";
 
 export default async function Page({
   params,
@@ -14,6 +14,10 @@ export default async function Page({
   const game = await getStandaloneGame(gameId);
 
   if (!game) notFound();
+
+  if (game.status === "COMPLETED") {
+    redirect(`/score-board/${game.id}`, RedirectType.replace);
+  }
 
   return (
     <main className="flex items-center justify-center">
