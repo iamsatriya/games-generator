@@ -79,7 +79,8 @@ export default function ScoreBoardComponent(props: Props) {
         totalScore: totals[name],
         wins: wins[name],
       }))
-      .filter((p) => p.totalScore === minTotalScore);
+      .filter((p) => p.totalScore === minTotalScore)
+      .filter((item) => item.name.toLowerCase() !== "satriya")
   }
 
   function onBackToHome() {
