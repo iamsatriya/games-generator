@@ -4,6 +4,7 @@ import "./globals.css";
 import Image from "next/image";
 import Logo from "@/public/logo.png";
 import packageJson from "../package.json";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -17,13 +17,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 import { createStandaloneGame } from "../actions/standalone-game";
-import { schema } from "../schema";
-import { useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { PLAYER_ID_KEY } from "../constant";
+import { schema } from "../schema";
 
 type Props = {
   numOfPlayer: number;
