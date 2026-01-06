@@ -24,13 +24,13 @@ import {
 } from "@/lib/generated/prisma/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CrownIcon } from "lucide-react";
+import { evaluate } from "mathjs";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import z from "zod";
 import { endStandaloneGame } from "../actions/standalone-game";
 import { PLAYER_ID_KEY } from "../constant";
 import { schema } from "../schema";
-import ScoreBoardComponent from "./score-board-component";
 
 type Props = {
   game: StandaloneGame & {
@@ -46,11 +46,7 @@ const localSchema = z.object({
 
 export default function GameBoard(props: Props) {
   const [loading, setLoading] = useState(false);
-
   const [currentRound, setCurrentRound] = useState(0);
-
-  // const [loseStreak, setLoseStreak] = useState<string[]>([]);
-
   const [crownIndex, setCrownIndex] = useState<number | null>(null);
 
   const [game, setGame] = useState<z.infer<typeof schema>>(() => {
@@ -96,7 +92,7 @@ export default function GameBoard(props: Props) {
     };
   });
 
-  const { register, control, handleSubmit, reset } = useForm<
+  const { register, control, handleSubmit, reset, setValue } = useForm<
     z.infer<typeof localSchema>
   >({
     resolver: zodResolver(localSchema),
@@ -119,21 +115,6 @@ export default function GameBoard(props: Props) {
     setLoading(true);
 
     const scoresForThisRound = values.score.map((v) => Number(v.value));
-
-    // setLoseStreak((prev) => {
-    //   const minScore = Math.min(...scoresForThisRound);
-
-    //   const minIndexes = scoresForThisRound
-    //     .map((v, i) => (v === minScore ? i : -1))
-    //     .filter((i) => i !== -1);
-
-    //   if (minIndexes.length === 1) {
-    //     const newStreak = [...prev];
-    //     newStreak.push(game.player[minIndexes[0]].name);
-    //     return newStreak;
-    //   }
-    //   return prev;
-    // });
 
     const crownsForThisRound = Array.from({ length: game?.player.length }).map(
       () => 0
@@ -178,20 +159,6 @@ export default function GameBoard(props: Props) {
     setLoading(false);
   }
 
-  function countFromEnd<T>(arr: T[]): number {
-    if (arr.length === 0) return 0;
-
-    const last = arr[arr.length - 1];
-    let count = 0;
-
-    for (let i = arr.length - 1; i >= 0; i--) {
-      if (arr[i] === last) count++;
-      else break;
-    }
-
-    return count;
-  }
-
   return (
     <Card className="max-w-md">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -204,17 +171,7 @@ export default function GameBoard(props: Props) {
               <TableRow>
                 {game?.player?.map((p, index) => (
                   <TableHead key={index}>
-                    <div className="relative overflow-visible">
-                      {/* {loseStreak.length >= 3 &&
-                            loseStreak.slice(-3).every((v) => v === p.name) && (
-                              // <FlameIcon stroke="red" fill="red" />
-                              <img
-                                src={"/burn.gif"}
-                                className="absolute right-0 bottom-0 left-0"
-                              />
-                            )} */}
-                      <span>{p.name}</span>
-                    </div>
+                    <span>{p.name}</span>
                   </TableHead>
                 ))}
               </TableRow>
@@ -267,8 +224,23 @@ export default function GameBoard(props: Props) {
                         <Input
                           {...register(`score.${i}.value` as const)}
                           disabled={loading}
-                          type="number"
+                          type="text"
                           className="flex-1"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const input = e.currentTarget.value.trim();
+                              try {
+                                const result = evaluate(input);
+                                if (
+                                  typeof result === "number" &&
+                                  !Number.isNaN(result)
+                                ) {
+                                  setValue(`score.${i}.value`, String(result));
+                                }
+                              } catch {}
+                            }
+                          }}
                         />
                         <CrownIcon
                           size={16}
@@ -292,12 +264,6 @@ export default function GameBoard(props: Props) {
               )}
             </TableBody>
           </Table>
-          {/* {countFromEnd(loseStreak) >= 3 && (
-                <p className="text-center">
-                  {loseStreak.slice(-1) + " udah lose streak "}
-                  <strong>{`${countFromEnd(loseStreak)} kali!`}</strong>
-                </p>
-              )} */}
         </CardContent>
         <CardFooter>
           <div className="flex-col w-full space-y-2 mt-8">
