@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function Player() {
-  const [numOfPlayer, setNumOfPlayer] = useState(3);
+  const [numOfPlayer, setNumOfPlayer] = useState(4);
 
   const disabledMinus = numOfPlayer <= 3;
 
