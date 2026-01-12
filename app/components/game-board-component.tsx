@@ -159,6 +159,15 @@ export default function GameBoard(props: Props) {
     setLoading(false);
   }
 
+  function handleSetValue(value: string, index: number) {
+    try {
+      const result = evaluate(value);
+      if (typeof result === "number" && !Number.isNaN(result)) {
+        setValue(`score.${index}.value`, String(result));
+      }
+    } catch {}
+  }
+
   return (
     <Card className="max-w-md">
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -230,16 +239,12 @@ export default function GameBoard(props: Props) {
                             if (e.key === "Enter") {
                               e.preventDefault();
                               const input = e.currentTarget.value.trim();
-                              try {
-                                const result = evaluate(input);
-                                if (
-                                  typeof result === "number" &&
-                                  !Number.isNaN(result)
-                                ) {
-                                  setValue(`score.${i}.value`, String(result));
-                                }
-                              } catch {}
+                              handleSetValue(input, i);
                             }
+                          }}
+                          onBlur={(e) => {
+                            const input = e.target.value;
+                            handleSetValue(input, i);
                           }}
                         />
                         <CrownIcon
