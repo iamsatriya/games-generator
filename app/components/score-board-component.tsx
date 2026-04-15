@@ -80,7 +80,8 @@ export default function ScoreBoardComponent(props: Props) {
         wins: wins[name],
       }))
       .filter((p) => p.totalScore === minTotalScore)
-      .filter((item) => item.name.toLowerCase() !== "satriya")
+      .filter((item) => !item.name.toLowerCase().includes("satriya"))
+      .filter((item) => !item.name.toLowerCase().includes("satria"))
   }
 
   function onBackToHome() {
